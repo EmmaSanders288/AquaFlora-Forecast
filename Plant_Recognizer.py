@@ -12,6 +12,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
 def convolution_images(folder_path, category):
     # Setting up kernel to be used for convolution of images
     sobel_kernel = np.array([[-1, 0, 1],
@@ -75,10 +77,10 @@ def load_and_preprocess_data(Categories):
     # Array for test images
     target_array = []
     for category in Categories:
-        folder_path = f'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/{category}'
+        folder_path = f'C:/Users/EmmaS/PycharmProjects/AquaFlora-Forecast/data/{category}'
         # Add convolution to images for extra data
-        convolution_images(folder_path, category)
-        normalize_images(folder_path, category)
+        # convolution_images(folder_path, category)
+        # normalize_images(folder_path, category)
         images = load_images(folder_path)
         processed_images.extend(images)  # Combine images from both categories
 
@@ -111,20 +113,23 @@ def create_model_pipeline(X_train, y_train, grid_search=True):
     if grid_search:
         # Create hyperparameter grid for hyperparameter tuning
         param_grid = {
-            "classifier__estimator__C": [0.1, 1, 10, 100],
-            'classifier__estimator__gamma': [0.0001, 0.001, 0.1, 1, 10],
-            'classifier__estimator__kernel': ['poly', 'linear', 'rbf']
+            "classifier__estimator__C": [1, 0.5, 0.75, 0.25],
+            'classifier__estimator__gamma': [0.0001, 0.001],
+            'classifier__estimator__kernel': [ 'linear','rbf']
         }
 
         # Create the pipeline with GridSearchCV
-        model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=3, verbose=4, n_jobs=-1)
+        model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=5, verbose=14, n_jobs=-1)
     else:
         # Create the pipeline without hyperparameter tuning
-        model = Pipeline(steps)
+        model = Pipeline([('scaler', StandardScaler()), ('svc', OneVsRestClassifier(SVC(kernel='linear', gamma=0.0001, C=0.5, decision_function_shape='ovo',probability=True)))])
+
 
     # Fit/train the best model with training data
     print('Going to fit:', model)
+
     model.fit(X_train, y_train)
+
 
     # Return the best model (if grid_search=True) or the default model
     return model
@@ -134,6 +139,8 @@ def prediction(best_model, X_test, y_test):
     # Calculate the accuracy and precision of the model based on the predicted and actual data
     accuracy = accuracy_score(y_pred, y_test)
     precision = precision_score(y_test, y_pred, average='weighted')
+    ConfusionMatrixDisplay.from_estimator(best_model, X_test, y_test)
+    plt.show()
     # Return the accuracy and precision
     return accuracy, precision
 
@@ -160,10 +167,12 @@ def main():
     Categories = ['Chinese_money_plant','Sansieveria', 'Cactus','Succulents']
     X, y = load_and_preprocess_data(Categories)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = create_model_pipeline(X_train,y_train,True)
+    model = create_model_pipeline(X_train,y_train,False)
     # model = load_model('model.joblib')
+
     predictions = prediction(model, X_test, y_test)
     print(predictions)
+    print(model.get_params())
     save_model(model)
     # # test_image('model.joblib',Categories, 6)
 
