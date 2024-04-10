@@ -75,7 +75,7 @@ def load_and_preprocess_data(Categories):
     # Array for test images
     target_array = []
     for category in Categories:
-        folder_path = f'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/{category}'
+        folder_path = f'C:/Users/EmmaS/PycharmProjects/AquaFlora-Forecast/data_backuo/{category}'
         # Add convolution to images for extra data
         # convolution_images(folder_path, category)
         # normalize_images(folder_path, category)
@@ -113,11 +113,11 @@ def create_model_pipeline(X_train, y_train, grid_search=True):
         param_grid = {
             "classifier__estimator__C": [0.1, 1, 10, 100],
             'classifier__estimator__gamma': [0.0001, 0.001, 0.1, 1, 10],
-            'classifier__estimator__kernel': ['poly', 'linear', 'rbf']
+            'classifier__estimator__kernel': [ 'kernel','linear', 'rbf']
         }
 
         # Create the pipeline with GridSearchCV
-        model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=3, verbose=4, n_jobs=-1)
+        model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=3, verbose=14)
     else:
         # Create the pipeline without hyperparameter tuning
         model = Pipeline(steps)
