@@ -50,7 +50,7 @@ def resize_image(images):
     # All the images in the images list
     for img in images:
         # Resize the image and add to the processed_images list
-        resized_img = cv2.resize(img, (32, 32))
+        resized_img = cv2.resize(img, (800, 800))
         processed_images.append(resized_img.flatten())
     # Return the list with resized images
     return processed_images
@@ -117,7 +117,7 @@ def create_model_pipeline(X_train, y_train, grid_search=True):
         }
 
         # Create the pipeline with GridSearchCV
-        model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=3, verbose=4)
+        model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=3, verbose=4, n_jobs=-1)
     else:
         # Create the pipeline without hyperparameter tuning
         model = Pipeline(steps)
