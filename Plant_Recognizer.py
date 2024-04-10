@@ -50,7 +50,7 @@ def resize_image(images):
     # All the images in the images list
     for img in images:
         # Resize the image and add to the processed_images list
-        resized_img = cv2.resize(img, (800, 800))
+        resized_img = cv2.resize(img, (32, 32))
         processed_images.append(resized_img.flatten())
     # Return the list with resized images
     return processed_images
@@ -77,8 +77,8 @@ def load_and_preprocess_data(Categories):
     for category in Categories:
         folder_path = f'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/{category}'
         # Add convolution to images for extra data
-        # convolution_images(folder_path, category)
-        # normalize_images(folder_path, category)
+        convolution_images(folder_path, category)
+        normalize_images(folder_path, category)
         images = load_images(folder_path)
         processed_images.extend(images)  # Combine images from both categories
 
