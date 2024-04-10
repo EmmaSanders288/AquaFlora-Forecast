@@ -6,9 +6,9 @@ with open('SensorData.csv', mode='a', newline= '') as sensor_file:
     sensor_writer = csv.writer(sensor_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     sensor_writer.writerow(["Light", "Temperature", "Humidity", "Soil_humidity",'Plant Type' ,"Time"])
 
-plant_type = 'Succulent'
+plant_type = 'Sanseveria'
 
-com = "COM7"
+com = "COM5"
 baud = 9600
 
 x = serial.Serial(com, baud, timeout=0.1)
@@ -23,4 +23,4 @@ while x.isOpen() == True:
             print(values)
             with open('SensorData.csv', mode='a', newline= '') as sensor_file:
                 sensor_writer = csv.writer(sensor_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                sensor_writer.writerow([float(val) for val in values] +[str(plant_type)]+ [str(time.asctime())])
+                sensor_writer.writerow([float(val) for val in values] +[str(plant_type)] [str(time.asctime())])
