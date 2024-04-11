@@ -5,8 +5,26 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
+import Plant_Recognizer
 
 # Cactei = 0, Pancake plant = 1, Sanseveria = 2, Succulent = 3
+Categories = ['Chinese_money_plant','Sansieveria', 'Cactus','Succulents']
+# filepath =
+# LDR_data =
+# temp_data =
+# humi_data =
+# soil_data =
+# plant_type = Plant_Recognizer.returnCategorty('model.joblib', Categories, filepath)
+'''
+if plant_type == 'Cactus':
+    plant_number = 0
+elif plant_type == 'Chinese_money_plant':
+    plant_number = 1
+elif plant_type == 'Sansieveria':
+    plant_number = 2
+elif plant_type == 'Succulents':
+    plant_number = 3
+'''
 
 labelEncoder = LabelEncoder()
 data = pd.read_csv("C:/Users/anna/PycharmProjects/AquaFlora-Forecast/PlantDataLabels.csv", sep=';')
@@ -23,6 +41,7 @@ y = data['Waterneed']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 test_data = [[508.0, 23.8, 55.0, 17.0, 3]]
+# continue_data = [[LDR_data, temp_data, humi_data, soil_data, plant_number]]
 
 svr = SVR(kernel='rbf', C=10, gamma='auto')
 svr.fit(X_train, y_train)
