@@ -13,7 +13,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 def convolution_images(folder_path, category):
     # Setting up kernel to be used for convolution of images
     sobel_kernel = np.array([[-1, 0, 1],
@@ -77,7 +77,7 @@ def load_and_preprocess_data(Categories):
     # Array for test images
     target_array = []
     for category in Categories:
-        folder_path = f'C:/Users/EmmaS/PycharmProjects/AquaFlora-Forecast/data/{category}'
+        folder_path = f'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/{category}'
         # Add convolution to images for extra data
         # convolution_images(folder_path, category)
         # normalize_images(folder_path, category)
@@ -113,8 +113,8 @@ def create_model_pipeline(X_train, y_train, grid_search=True):
     if grid_search:
         # Create hyperparameter grid for hyperparameter tuning
         param_grid = {
-            "classifier__estimator__C": [1, 0.5, 0.75, 0.25],
-            'classifier__estimator__gamma': [0.0001, 0.001],
+            "classifier__estimator__C": [1, 2,3, 4,5],
+            'classifier__estimator__gamma': [0.01, 0.001, 0.1,1,10],
             'classifier__estimator__kernel': [ 'linear','rbf']
         }
 
@@ -122,7 +122,7 @@ def create_model_pipeline(X_train, y_train, grid_search=True):
         model = GridSearchCV(Pipeline(steps), param_grid, scoring="accuracy", cv=5, verbose=14, n_jobs=-1)
     else:
         # Create the pipeline without hyperparameter tuning
-        model = Pipeline([('scaler', StandardScaler()), ('svc', OneVsRestClassifier(SVC(kernel='linear', gamma=0.0001, C=0.5, decision_function_shape='ovo',probability=True)))])
+        model = Pipeline([('scaler', StandardScaler()), ('svc', OneVsRestClassifier(SVC(kernel='rbf', gamma=0.001, C=3, decision_function_shape='ovo',probability=True)))])
 
 
     # Fit/train the best model with training data
@@ -133,16 +133,20 @@ def create_model_pipeline(X_train, y_train, grid_search=True):
 
     # Return the best model (if grid_search=True) or the default model
     return model
-def prediction(best_model, X_test, y_test):
+def prediction(best_model, X_test, y_test, labels):
     # Create a prediction based on test data
     y_pred = best_model.predict(X_test)
     # Calculate the accuracy and precision of the model based on the predicted and actual data
     accuracy = accuracy_score(y_pred, y_test)
     precision = precision_score(y_test, y_pred, average='weighted')
-    ConfusionMatrixDisplay.from_estimator(best_model, X_test, y_test)
+    y_pred = best_model.predict(X_test)
+    valid_labels = [label for label in labels if label in np.unique(y_test)]
+    print(valid_labels)
+    ConfusionMatrixDisplay.from_predictions(y_test,y_pred, display_labels=labels)
     plt.show()
     # Return the accuracy and precision
     return accuracy, precision
+
 
 # Function that saves the best_model, so that it can be used for predictions again without fitting again
 # Uses the model and gives a name to be saved with
@@ -158,23 +162,66 @@ def save_model(model: Pipeline, model_name: str = 'model') -> str:
 
 def load_model(model_file: str = 'model.joblib') -> SVC:
     # Load the model
+    # print('loading model')
     model = load(model_file)
     # Returns the loaded model
     return model
 
+def test_image(model_file, Categories, index):
+    # Load the model
+    model = load_model(model_file)
+    print("model_loaded")
+    # Load all the images into a list
+    all_images = load_images(f'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/test')
+    # Take an image
+    img = all_images[index]
+    # Resize, flatten and reshape image for testing
+    img_resize = cv2.resize(img, (32, 32))
+    img_flatten = img_resize.flatten()
+    img_reshaped= img_flatten.reshape(1, -1)
+    # Use the trained model to predict
+    probability = model.predict_proba(img_reshaped)
+    predicted_class = model.predict([img_flatten])[0]  # Wrap img_flatten in a list
+    # Print the predicted image category and percentages
+    print("The predicted image is:", Categories[predicted_class])
+    print(f"Probability for {Categories[0]}: {probability[0][0]*100:.2f}%")
+    print(f"Probability for {Categories[1]}: {probability[0][1]*100:.2f}%")
+    print(f"Probability for {Categories[2]}: {probability[0][2] * 100:.2f}%")
+    print(f"Probability for {Categories[3]}: {probability[0][3] * 100:.2f}%")
+    # Show the tested image
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.show()
+
+def returnCategorty(model_file, Categories, index):
+    model = load_model(model_file)
+    # Load all the images into a list
+    all_images = load_images(f'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/test')
+    # Take an image
+    img = all_images[index]
+    # Resize, flatten and reshape image for testing
+    img_resize = cv2.resize(img, (32, 32))
+    img_flatten = img_resize.flatten()
+    img_reshaped= img_flatten.reshape(1, -1)
+    # Use the trained model to predict
+    probability = model.predict_proba(img_reshaped)
+    predicted_class = model.predict([img_flatten])[0]  # Wrap img_flatten in a list
+    return Categories[predicted_class]
+    # Print the predicted image category and percentages
+
+
 def main():
     # Create the categories for images
     Categories = ['Chinese_money_plant','Sansieveria', 'Cactus','Succulents']
-    X, y = load_and_preprocess_data(Categories)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = create_model_pipeline(X_train,y_train,False)
+    # X, y = load_and_preprocess_data(Categories)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    # model = create_model_pipeline(X_train,y_train,False)
     # model = load_model('model.joblib')
+    # save_model(model)
+    # predictions = prediction(model, X_test, y_test, Categories)
+    # print(predictions)
 
-    predictions = prediction(model, X_test, y_test)
-    print(predictions)
-    print(model.get_params())
-    save_model(model)
-    # # test_image('model.joblib',Categories, 6)
-
+    # test_image('model.joblib',Categories, 0)
+    category = returnCategorty('model.joblib',Categories, 1)
+    print(category)
 if __name__ == '__main__':
     main()
