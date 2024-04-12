@@ -1,69 +1,72 @@
 import pandas as pd
-import csv
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVR
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error, max_error
 from sklearn.model_selection import GridSearchCV
-import Plant_Recognizer
-
+import serial
 # Cactei = 0, Pancake plant = 1, Sanseveria = 2, Succulent = 3
-Categories = ['Chinese_money_plant','Sansieveria', 'Cactus','Succulents']
-# filepath =
-# LDR_data =
-# temp_data =
-# humi_data =
-# soil_data =
-# plant_type = Plant_Recognizer.returnCategorty('model.joblib', Categories, filepath)
-'''
-if plant_type == 'Cactus':
-    plant_number = 0
-elif plant_type == 'Chinese_money_plant':
-    plant_number = 1
-elif plant_type == 'Sansieveria':
-    plant_number = 2
-elif plant_type == 'Succulents':
-    plant_number = 3
-'''
 
-labelEncoder = LabelEncoder()
-data = pd.read_csv("C:/Users/anna/PycharmProjects/AquaFlora-Forecast/PlantDataLabels.csv", sep=';')
-# print(data.dtypes)
-data['Waterneed'] = pd.to_numeric(data['Waterneed'])
-data['Plant Type'] = labelEncoder.fit_transform(data['Plant Type'])
-print(labelEncoder.classes_)
-transformed = labelEncoder.transform(['Cactei', 'Pancake Plant', 'Sanseveria', 'Succulent'])
-print(transformed)
-# print(data.dtypes)
+class PlantWaterNeedPredictor:
+    def __init__(self, sensor_data_path, com_port, baud_rate):
+        self.sensor_data = pd.read_csv(sensor_data_path, sep=';')
+        self.labelEncoder = LabelEncoder()
+        self.com = com_port
+        self.baud = baud_rate
+        self.x = serial.Serial(self.com, self.baud, timeout=0.1)
 
-X = data.drop(columns=['Unnamed: 0', 'Waterneed', 'Time'])
-y = data['Waterneed']
+    def data_sensors(self):
+        while self.x.isOpen():
+            data = str(self.x.readline().decode('utf-8')).rstrip()
+            if data:
+                values = data.split(',')
+                values.pop()
+                if len(values) == 4:
+                    return values
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-test_data = [[508.0, 23.8, 55.0, 17.0, 3]]
-# continue_data = [[LDR_data, temp_data, humi_data, soil_data, plant_number]]
+    def preprocess_data(self):
+        self.sensor_data['Waterneed'] = pd.to_numeric(self.sensor_data['Waterneed'])
+        self.sensor_data['Plant Type'] = self.labelEncoder.fit_transform(self.sensor_data['Plant Type'])
 
-svr = SVR(kernel='rbf', C=10, gamma='auto')
-svr.fit(X_train, y_train)
-acc = svr.score(X_test, y_test)
-print(acc)
-prediction = svr.predict(test_data)
-# print(X_test.shape)
-# print(X_test)
-print(prediction)
-'''
+    def train_model(self):
+        X = self.sensor_data.drop(columns=['Unnamed: 0', 'Waterneed', 'Time'])
+        y = self.sensor_data['Waterneed']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-'''
+        ''''
+        parameters = {'kernel': ('rbf', 'sigmoid'), 'C': [0.1, 1, 10], 'gamma': ('auto', 'scale')}
+        svr = SVR()
+        clf = GridSearchCV(svr, parameters, scoring='neg_mean_squared_error', verbose=14)
+        clf.fit(X_train, y_train)
+        print(clf.best_estimator_)
+        print(clf.best_score_)
+        print(clf.best_score_)
+        '''
 
+        clf = make_pipeline(StandardScaler(), SVR(kernel='rbf', C=10, gamma='auto'))
+        clf.fit(X_train, y_train)
 
-''''
-parameters = {'kernel': ('rbf', 'sigmoid'), 'C': [0.1, 1, 10], 'gamma': ('auto', 'scale')}
-svr = SVR()
-clf = GridSearchCV(svr, parameters, scoring='neg_mean_squared_error', verbose=14)
-clf.fit(X_train, y_train)
-print(clf.best_estimator_)
-print(clf.best_score_)
-print(clf.best_score_)
-'''
+        y_pred = clf.predict(X_test)
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
+        mxe = max_error(y_test, y_pred)
+        print(f"R2 Score: {r2:.2f}, MAE: {mae:.2f}, MSE: {mse:.2f}, Max Error: {mxe:.2f}")
 
+        while True:
+            sensor_values = self.data_sensors()
+            LDR_data, temp_data, humi_data, soil_data = map(float, sensor_values)
+            continue_data = [[LDR_data, temp_data, humi_data, soil_data, 2]]
+            prediction = clf.predict(continue_data)
+            print(f"Predicted water need: {prediction[0]:.2f} units")
 
+if __name__ == '__main__':
+    sensor_data_path = "C:/Users/anna/PycharmProjects/AquaFlora-Forecast/PlantDataLabels.csv"
+    com_port = "COM16"
+    baud_rate = 9600
+
+    predictor = PlantWaterNeedPredictor(sensor_data_path, com_port, baud_rate)
+    predictor.preprocess_data()
+    predictor.train_model()
