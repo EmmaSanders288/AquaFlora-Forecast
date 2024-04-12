@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -6,6 +8,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error, max_error
 from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+from joblib import dump, load
 import serial
 # Cactei = 0, Pancake plant = 1, Sanseveria = 2, Succulent = 3
 
@@ -54,19 +58,47 @@ class PlantWaterNeedPredictor:
         mse = mean_squared_error(y_test, y_pred)
         mxe = max_error(y_test, y_pred)
         print(f"R2 Score: {r2:.2f}, MAE: {mae:.2f}, MSE: {mse:.2f}, Max Error: {mxe:.2f}")
+        return clf
 
+    def save_model(self,model: Pipeline, model_name: str = 'regression') -> str:
+        # Create a name for the file that the model will be saved in
+        filename = f"{model_name}.joblib"
+        # Save the model to the file
+        dump(model, filename=filename)
+        # Print to check saving went well
+        print(f"ML Model {model_name} was saved as '{filename}'.")
+        # Return the filename
+        return filename
+
+    def prediction(self, clf):
         while True:
             sensor_values = self.data_sensors()
             LDR_data, temp_data, humi_data, soil_data = map(float, sensor_values)
             continue_data = [[LDR_data, temp_data, humi_data, soil_data, 2]]
             prediction = clf.predict(continue_data)
-            print(f"Predicted water need: {prediction[0]:.2f} week")
+            day_prediction = math.floor(prediction*7)
+            print(f"Predicted water need: {day_prediction:.2f} days")
+            return day_prediction
+    def load_model(self,model_file: str = 'regression.joblib') -> SVR:
+        # Load the model
+        # print('loading model')
+        model = load(model_file)
+        # Returns the loaded model
+        return model
 
+    def predict_for_main(self):
+        self.preprocess_data()
+        model = self.load_model()
+        prediction = self.prediction(model)
+        data = self.data_sensors()
+        return prediction, data
 if __name__ == '__main__':
-    sensor_data_path = "C:/Users/anna/PycharmProjects/AquaFlora-Forecast/PlantDataLabels.csv"
-    com_port = "COM16"
+    sensor_data_path = "C:/Users/EmmaS/Documents/M7-Python/Final Project/csv_files/PlantDataLabels.csv"
+    com_port = "COM7"
     baud_rate = 9600
 
     predictor = PlantWaterNeedPredictor(sensor_data_path, com_port, baud_rate)
     predictor.preprocess_data()
-    predictor.train_model()
+    # model = predictor.train_model()
+    # predictor.save_model(model)
+
