@@ -60,7 +60,7 @@ class PlantWaterNeedPredictor:
             LDR_data, temp_data, humi_data, soil_data = map(float, sensor_values)
             continue_data = [[LDR_data, temp_data, humi_data, soil_data, 2]]
             prediction = clf.predict(continue_data)
-            print(f"Predicted water need: {prediction[0]:.2f} units")
+            print(f"Predicted water need: {prediction[0]:.2f} week")
 
 if __name__ == '__main__':
     sensor_data_path = "C:/Users/anna/PycharmProjects/AquaFlora-Forecast/PlantDataLabels.csv"
