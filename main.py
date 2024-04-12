@@ -6,7 +6,7 @@ from SVM_model import PlantWaterNeedPredictor
 def main():
     filepath= 'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/for_recognition/9cdb7a9b-afc5-4541-a736-1997efa5842a.jpg'
     sensor_data_path = "C:/Users/EmmaS/Documents/M7-Python/Final Project/csv_files/PlantDataLabels.csv"
-    com_port = "COM7"
+    com_port = "COM17"
     baud_rate = 9600
 
     plant_recognizer = Plant_recgonizer()
