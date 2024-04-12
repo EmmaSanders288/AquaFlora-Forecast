@@ -4,15 +4,16 @@ from SVM_model import PlantWaterNeedPredictor
 # from saveDataToExcel import SensorDataLogger
 
 def main():
-    user = ''
+    user = 'Emma'
     if user == 'Emma':
-        filepath= 'C:/Users/EmmaS/Documents/M7-Python/Final Project/data/for_recognition/9cdb7a9b-afc5-4541-a736-1997efa5842a.jpg'
-        sensor_data_path = "C:/Users/EmmaS/Documents/M7-Python/Final Project/csv_files/PlantDataLabels.csv"
-    if user == 'Anna':
-        filepath='C:/Users/anna/PycharmProjects/AquaFlora-Forecast/data/for_recognition/9cdb7a9b-afc5-4541-a736-1997efa5842a.jpg'
-        sensor_data_path='C:/Users/anna/PycharmProjects/AquaFlora-Forecast/csv_files/PlantDataLabels.csv'
+        url = 'C:/Users/EmmaS/Documents/M7-Python/Final Project'
+    elif user == 'Anna':
+        url = 'C:/Users/anna/PycharmProjects/AquaFlora-Forecast'
 
-    com_port = "COM17"
+    filepath = url + '/data/for_recognition/9cdb7a9b-afc5-4541-a736-1997efa5842a.jpg'
+    sensor_data_path = url + '/csv_files/PlantDataLabels.csv'
+
+    com_port = "COM7"
     baud_rate = 9600
 
     plant_recognizer = Plant_recgonizer()
