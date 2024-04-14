@@ -1,5 +1,4 @@
 import math
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -11,6 +10,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from joblib import dump, load
 import serial
+
+
 # Cactei = 0, Pancake plant = 1, Sanseveria = 2, Succulent = 3
 
 class PlantWaterNeedPredictor:
@@ -60,7 +61,7 @@ class PlantWaterNeedPredictor:
         print(f"R2 Score: {r2:.2f}, MAE: {mae:.2f}, MSE: {mse:.2f}, Max Error: {mxe:.2f}")
         return clf
 
-    def save_model(self,model: Pipeline, model_name: str = 'regression') -> str:
+    def save_model(self, model: Pipeline, model_name: str = 'regression') -> str:
         # Create a name for the file that the model will be saved in
         filename = f"{model_name}.joblib"
         # Save the model to the file
@@ -70,16 +71,28 @@ class PlantWaterNeedPredictor:
         # Return the filename
         return filename
 
+    def get_category(self, category):
+        if category == 'Cactus':
+            self.category_number = 0
+        elif category == 'Chinese_money_plant':
+            self.category_number = 1
+        elif category == 'Sansieveria':
+            self.category_number = 2
+        elif category == 'Succulents':
+            self.category_number = 3
+        return self.category_number
+
     def prediction(self, clf):
         while True:
             sensor_values = self.data_sensors()
             LDR_data, temp_data, humi_data, soil_data = map(float, sensor_values)
-            continue_data = [[LDR_data, temp_data, humi_data, soil_data, 2]]
+            continue_data = [[LDR_data, temp_data, humi_data, soil_data, self.category_number]]
             prediction = clf.predict(continue_data)
-            day_prediction = math.floor(prediction*7)
+            day_prediction = math.floor(prediction * 7)
             print(f"Predicted water need: {day_prediction:.2f} days")
             return day_prediction
-    def load_model(self,model_file: str = 'regression.joblib') -> SVR:
+
+    def load_model(self, model_file: str = 'regression.joblib') -> SVR:
         # Load the model
         # print('loading model')
         model = load(model_file)
@@ -92,6 +105,8 @@ class PlantWaterNeedPredictor:
         prediction = self.prediction(model)
         data = self.data_sensors()
         return prediction, data
+
+
 if __name__ == '__main__':
     sensor_data_path = "C:/Users/EmmaS/Documents/M7-Python/Final Project/csv_files/PlantDataLabels.csv"
     com_port = "COM7"
@@ -101,4 +116,3 @@ if __name__ == '__main__':
     predictor.preprocess_data()
     # model = predictor.train_model()
     # predictor.save_model(model)
-

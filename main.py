@@ -1,6 +1,8 @@
 from Plant_Recognizer import Plant_recgonizer
 from screen import Screen
 from SVM_model import PlantWaterNeedPredictor
+
+
 # from saveDataToExcel import SensorDataLogger
 
 def main():
@@ -22,6 +24,7 @@ def main():
 
     category = plant_recognizer.main_for_category_prediction(filepath)
     print(category)
+    plant_need_predictor.get_category(category)
 
     while True:
         data = plant_need_predictor.predict_for_main()
@@ -30,9 +33,9 @@ def main():
         temperature = data[1][1]
         humidity = data[1][2]
         soil_humidity = data[1][3]
-        print(f"Day: {days}, Light intensity: {light} lux, Temperature: {temperature}°C, Humidity: {humidity}%, Soil Humidity: {soil_humidity}%")
+        print(
+            f"Day: {days}, Light intensity: {light} lux, Temperature: {temperature}°C, Humidity: {humidity}%, Soil Humidity: {soil_humidity}%")
         screen.main_loop(category, light, temperature, humidity, soil_humidity, days)
-
 
 
 if __name__ == '__main__':
