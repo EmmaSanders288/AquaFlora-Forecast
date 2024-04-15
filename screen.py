@@ -1,8 +1,9 @@
 import pygame
 from pygame.locals import *
 
+
 class Screen:
-    def __init__(self,filepath):
+    def __init__(self, filepath):
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
         pygame.display.set_caption('Aqua Flora Forecast')
@@ -12,10 +13,7 @@ class Screen:
         self.small_font_size = 60
         self.big_font_size = 56
 
-
-
-
-    def update_input(self, category, humidity, temperature, soil_humidity, light, days):
+    def update_input(self, category, light, temperature, humidity, soil_humidity, days):
 
         self.category = category
         self.humidity = humidity
@@ -24,12 +22,14 @@ class Screen:
         self.light = light
         self.water_days = days
 
-
+        # return self.category, self.humidity, self.temperature, self.soil_humidity, self.light, self.water_days
 
     def load_resources(self):
         self.img = pygame.image.load(self.folderpath)
-        self.scaled_image = pygame.transform.scale(self.img, (self.screen.get_width() // 3, self.screen.get_height() // 1.5))
-        self.rect_image = self.scaled_image.get_rect(center=(self.screen.get_width() // 4, self.screen.get_height() // 2))
+        self.scaled_image = pygame.transform.scale(self.img,
+                                                   (self.screen.get_width() // 3, self.screen.get_height() // 1.5))
+        self.rect_image = self.scaled_image.get_rect(
+            center=(self.screen.get_width() // 4, self.screen.get_height() // 2))
 
         self.rect = Rect(500, 0, self.screen.get_width() // 3 + 50, self.screen.get_height() // 1.5 + 50)
         self.rect.center = (self.screen.get_width() // 4, self.screen.get_height() // 2)
@@ -48,34 +48,37 @@ class Screen:
         self.screen.blit(self.soil_humidity_text, self.rect_soil_humidity_text)
         self.screen.blit(self.light_text, self.rect_light_text)
 
-    def render_text(self, category, humidity, temperature, soil_humidity, light, days):
+    def render_text(self):
 
         """Renders the text for the game scene."""
-        self.top_text = self.big_font.render(f'Your {category} needs water in {days} days', True,
+        self.top_text = self.big_font.render(f'Your {self.category} needs water in {self.water_days} days', True,
                                              'white')
-        self.humidity_text = self.small_font.render(f'Humidity: {humidity}', True, 'white')
-        self.temperature_text = self.small_font.render(f'Temperature: {temperature}', True, 'white')
-        self.soil_humidity_text = self.small_font.render(f'Soil humidity: {soil_humidity}', True, 'white')
-        self.light_text = self.small_font.render(f'Light: {light}', True, 'white')
+        self.humidity_text = self.small_font.render(f'Humidity: {self.humidity}%', True, 'white')
+        self.temperature_text = self.small_font.render(f'Temperature: {self.temperature}°C', True, 'white')
+        self.soil_humidity_text = self.small_font.render(f'Soil humidity: {self.soil_humidity}%', True, 'white')
+        self.light_text = self.small_font.render(f'Light: {self.light}%', True, 'white')
 
-        self.rect_top_text = self.top_text.get_rect(center=(self.screen.get_width() - self.screen.get_width() // 3.5, self.screen.get_height() // 4))
-        self.rect_humidity_text = self.humidity_text.get_rect(center=(self.rect_top_text.centerx, self.rect_top_text.centery + 3 * self.small_font_size))
-        self.rect_temperature_text = self.temperature_text.get_rect(center=(self.rect_top_text.centerx, self.rect_humidity_text.centery + self.small_font_size))
-        self.rect_soil_humidity_text = self.soil_humidity_text.get_rect(center=(self.rect_top_text.centerx, self.rect_temperature_text.centery + self.small_font_size))
-        self.rect_light_text = self.light_text.get_rect(center=(self.rect_top_text.centerx, self.rect_soil_humidity_text.centery + self.small_font_size))
-
+        self.rect_top_text = self.top_text.get_rect(
+            center=(self.screen.get_width() - self.screen.get_width() // 3.5, self.screen.get_height() // 4))
+        self.rect_humidity_text = self.humidity_text.get_rect(
+            center=(self.rect_top_text.centerx, self.rect_top_text.centery + 3 * self.small_font_size))
+        self.rect_temperature_text = self.temperature_text.get_rect(
+            center=(self.rect_top_text.centerx, self.rect_humidity_text.centery + self.small_font_size))
+        self.rect_soil_humidity_text = self.soil_humidity_text.get_rect(
+            center=(self.rect_top_text.centerx, self.rect_temperature_text.centery + self.small_font_size))
+        self.rect_light_text = self.light_text.get_rect(
+            center=(self.rect_top_text.centerx, self.rect_soil_humidity_text.centery + self.small_font_size))
 
     def main_loop(self, category, humidity, temperature, soil_humidity, light, days):
         self.load_resources()
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    self.running = False
-
-
-            self.render_text( category, humidity, temperature, soil_humidity, light, days)
-            self.draw_scene()
-            pygame.display.flip()
-            self.clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+        self.update_input(category, humidity, temperature, soil_humidity, light, days)
+        self.render_text()
+        self.draw_scene()
+        pygame.display.flip()
+        self.clock.tick(60)
+        print(f"Day: {days}, Light intensity: {light} lux, Temperature: {temperature}°C, Humidity: {humidity}%, Soil Humidity: {soil_humidity}%")
 
 

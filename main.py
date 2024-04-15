@@ -1,12 +1,13 @@
 from Plant_Recognizer import Plant_recgonizer
 from screen import Screen
 from SVM_model import PlantWaterNeedPredictor
+import math
 
 
 # from saveDataToExcel import SensorDataLogger
 
 def main():
-    user = 'Emma'
+    user = 'Anna'
     if user == 'Emma':
         url = 'C:/Users/EmmaS/Documents/M7-Python/Final Project'
     elif user == 'Anna':
@@ -15,7 +16,7 @@ def main():
     filepath = url + '/data/for_recognition/9cdb7a9b-afc5-4541-a736-1997efa5842a.jpg'
     sensor_data_path = url + '/csv_files/PlantDataLabels.csv'
 
-    com_port = "COM7"
+    com_port = "COM16"
     baud_rate = 9600
 
     plant_recognizer = Plant_recgonizer()
@@ -29,12 +30,11 @@ def main():
     while True:
         data = plant_need_predictor.predict_for_main()
         days = data[0]
-        light = data[1][0]
+        light = math.floor((float(data[1][0])/1023)*100)
         temperature = data[1][1]
         humidity = data[1][2]
         soil_humidity = data[1][3]
-        print(
-            f"Day: {days}, Light intensity: {light} lux, Temperature: {temperature}°C, Humidity: {humidity}%, Soil Humidity: {soil_humidity}%")
+        #print(f"Day: {days}, Light intensity: {light} lux, Temperature: {temperature}°C, Humidity: {humidity}%, Soil Humidity: {soil_humidity}%")
         screen.main_loop(category, light, temperature, humidity, soil_humidity, days)
 
 

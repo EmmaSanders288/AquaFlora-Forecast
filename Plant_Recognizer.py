@@ -12,11 +12,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import  ConfusionMatrixDisplay
+from sklearn.metrics import ConfusionMatrixDisplay
+
 
 class Plant_recgonizer:
 
-    def convolution_images(self,folder_path, category):
+    def convolution_images(self, folder_path, category):
         # Setting up kernel to be used for convolution of images
         sobel_kernel = np.array([[-1, 0, 1],
                                  [-1, 0, 2],
@@ -37,7 +38,7 @@ class Plant_recgonizer:
         # Clear the list when done so that the process can start again with clean list
         list.clear()
 
-    def load_images(self,folder_path):
+    def load_images(self, folder_path):
         # Create a list for the images
         images = []
         for filename in os.listdir(folder_path):
@@ -49,7 +50,7 @@ class Plant_recgonizer:
         # Return the list with images
         return images
 
-    def resize_image(self,images):
+    def resize_image(self, images):
         # Create a list for the processed (resized) images
         processed_images = []
         # All the images in the images list
@@ -60,7 +61,7 @@ class Plant_recgonizer:
         # Return the list with resized images
         return processed_images
 
-    def normalize_images(self,folder_path, category):
+    def normalize_images(self, folder_path, category):
         min_value = 0
         max_value = 1
         norm_type = cv2.NORM_MINMAX
@@ -107,7 +108,7 @@ class Plant_recgonizer:
 
         return X, y
 
-    def create_model_pipeline(self,X_train, y_train, grid_search=True):
+    def create_model_pipeline(self, X_train, y_train, grid_search=True):
         # Define the steps for the pipeline
         steps = [
             ('scaler', StandardScaler()),  # Standardize features
@@ -137,7 +138,7 @@ class Plant_recgonizer:
         # Return the best model (if grid_search=True) or the default model
         return model
 
-    def prediction(self,best_model, X_test, y_test, labels):
+    def prediction(self, best_model, X_test, y_test, labels):
         # Create a prediction based on test data
         y_pred = best_model.predict(X_test)
         # Calculate the accuracy and precision of the model based on the predicted and actual data
@@ -153,7 +154,7 @@ class Plant_recgonizer:
 
     # Function that saves the best_model, so that it can be used for predictions again without fitting again
     # Uses the model and gives a name to be saved with
-    def save_model(self,model: Pipeline, model_name: str = 'model') -> str:
+    def save_model(self, model: Pipeline, model_name: str = 'model') -> str:
         # Create a name for the file that the model will be saved in
         filename = f"{model_name}.joblib"
         # Save the model to the file
@@ -163,14 +164,14 @@ class Plant_recgonizer:
         # Return the filename
         return filename
 
-    def load_model(self,model_file: str = 'model.joblib') -> SVC:
+    def load_model(self, model_file: str = 'model.joblib') -> SVC:
         # Load the model
         # print('loading model')
         model = load(model_file)
         # Returns the loaded model
         return model
 
-    def test_image(self,model_file, Categories, index):
+    def test_image(self, model_file, Categories, index):
         # Load the model
         model = self.load_model(model_file)
         print("model_loaded")
@@ -195,7 +196,7 @@ class Plant_recgonizer:
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         plt.show()
 
-    def returnCategorty(self,model_file, Categories, filepath):
+    def returnCategorty(self, model_file, Categories, filepath):
         model = self.load_model(model_file)
         # Load all the images into a list
         img = cv2.imread(filepath)
