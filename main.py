@@ -7,13 +7,13 @@ import math
 # from saveDataToExcel import SensorDataLogger
 
 def main():
-    user = 'Anna'
+    user = 'Emma'
     if user == 'Emma':
         url = 'C:/Users/EmmaS/Documents/M7-Python/Final Project'
     elif user == 'Anna':
         url = 'C:/Users/anna/PycharmProjects/AquaFlora-Forecast'
 
-    filepath = url + '/data/for_recognition/9cdb7a9b-afc5-4541-a736-1997efa5842a.jpg'
+    filepath = url + '/data/for_recognition/test.jpeg'
     sensor_data_path = url + '/csv_files/PlantDataLabels.csv'
 
     com_port = "COM16"

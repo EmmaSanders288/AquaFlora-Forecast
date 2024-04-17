@@ -218,11 +218,11 @@ class Plant_recgonizer:
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
         # model = self.create_model_pipeline(X_train, y_train, False)
         # model = load_model('model.joblib')
-        self.save_model(model)
+        # self.save_model(model)
         # predictions = prediction(model, X_test, y_test, Categories)
         # print(predictions)
 
-        # test_image('model.joblib',Categories, 0)
+        test_image('model.joblib',Categories, 0)
         # category = returnCategorty('model.joblib',Categories, 1)
         # print(category)
 
@@ -230,3 +230,5 @@ class Plant_recgonizer:
         Categories = ['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents']
         category = self.returnCategorty('model.joblib', Categories, filepath)
         return category
+
+

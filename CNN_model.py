@@ -134,11 +134,11 @@ class PlantClassifier:
     def main(self):
         # Create the categories for images
         Categories = ['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents']
-        # X, y = self.load_and_preprocess_data(Categories)
-        # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        X, y = self.load_and_preprocess_data(Categories)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
         # model = self.create_model_pipeline(X_train, y_train, False)
         # model = load_model('model.joblib')
-        self.save_model(self.model)
+        # self.save_model(self.model)
         # predictions = prediction(model, X_test, y_test, Categories)
         # print(predictions)
 
