@@ -6,12 +6,12 @@ from scikeras.wrappers import KerasClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
 from tensorflow.keras.models import *
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Input
 from tensorflow.keras.preprocessing import *
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
-from keras.models import Model
 from keras.models import load_model
 from PIL import Image, ImageCms
 
@@ -44,9 +44,9 @@ class PlantClassifier:
         # Clear the list when done so that the process can start again with clean list
         list.clear()
 
-    def correct_image_srgb(self, imagepath):
+    def correct_image_srgb(self, image_path):
         # Load the image
-        image_path = 'data/Chinese_money_plant/test.jpeg'
+
         image = Image.open(image_path)
 
         # Ensure the image is in RGB mode
@@ -132,20 +132,21 @@ class PlantClassifier:
         # Calculate the accuracy and precision of the model based on the predicted and actual data
         accuracy = accuracy_score(y_test_labels, y_pred_labels)
         precision = precision_score(y_test_labels, y_pred_labels, average='weighted')
-
+        f1 = f1_score(y_test_labels,y_pred_labels, average='weighted')
         # Generate confusion matrix display
         ConfusionMatrixDisplay.from_predictions(y_test_labels, y_pred_labels, display_labels=self.categories)
         plt.show()
 
         # Return the accuracy and precision
-        return accuracy, precision
+        return accuracy, precision, f1
+
 
     def test(self, model, test_img_path):
         test_img = image.load_img(test_img_path, target_size=(self.img_width, self.img_height, 3))
         test_img_array = image.img_to_array(test_img)
         test_img_array /= 255.0
         test_img_array = np.expand_dims(test_img_array, axis=0)
-        print(test_img_array.dtype, test_img_array)
+
         predictions = model.predict(test_img_array)
         top_classes = np.argsort(predictions[0])[::-1][:4]
         print(f"The predicted image is {self.categories[top_classes[0]]}")

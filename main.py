@@ -1,4 +1,4 @@
-from tets import PlantClassifier
+from CNN_images import PlantClassifier
 from screen import Screen
 from SVM_model import PlantWaterNeedPredictor
 import math
@@ -7,7 +7,7 @@ import math
 # from saveDataToExcel import SensorDataLogger
 
 def main():
-    user = 'Anna'
+    user = 'Emma'
     if user == 'Emma':
         url = 'C:/Users/EmmaS/Documents/M7-Python/Final Project'
     elif user == 'Anna':
@@ -16,7 +16,7 @@ def main():
     filepath = url + '/data/for_recognition/test.jpeg'
     sensor_data_path = url + '/csv_files/PlantDataLabels.csv'
 
-    com_port = "COM16"
+    com_port = "COM7"
     baud_rate = 9600
 
     plant_recognizer = PlantClassifier(['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents'], filepath)
