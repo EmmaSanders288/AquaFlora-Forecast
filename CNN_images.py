@@ -3,13 +3,11 @@ import cv2
 import numpy as np
 import tf_keras.models
 from scikeras.wrappers import KerasClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, f1_score
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import precision_score
-from sklearn.metrics import f1_score
 from tensorflow.keras.models import *
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Input
-from tensorflow.keras.preprocessing import *
+from tensorflow.keras.preprocessing import image
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 from keras.models import load_model
@@ -24,38 +22,18 @@ class PlantClassifier:
         self.image_path = imagepath
 
     def convolution_images(self, folder_path, category):
-        # Setting up kernel to be used for convolution of images
-        sobel_kernel = np.array([[-1, 0, 1],
-                                 [-1, 0, 2],
-                                 [-1, 0, 1]])
-
-        # Creating list for the processed images
-        list = []
+        # Convolute images using Sobel kernel
+        sobel_kernel = np.array([[-1, 0, 1], [-1, 0, 2], [-1, 0, 1]])
         for filename in os.listdir(folder_path):
-            # Use sobel-kernel on the images
             img_sobel = cv2.filter2D(cv2.imread(os.path.join(folder_path, filename)), -1, sobel_kernel)
-            # Add the convoluted images to the list
-            list.append(img_sobel)
-
-        # Add the images to their corresponding data files based on their type (dog or muffin)
-        for i in range(len(list)):
-            cv2.imwrite(f"data/{category}/convolution{i}.jpg", list[i])
-
-        # Clear the list when done so that the process can start again with clean list
-        list.clear()
+            cv2.imwrite(f"data/{category}/convolution{i}.jpg", img_sobel)
 
     def correct_image_srgb(self, image_path):
-        # Load the image
-
+        # Correct image color space to sRGB
         image = Image.open(image_path)
-
-        # Ensure the image is in RGB mode
         if image.mode != 'RGB':
             image = image.convert('RGB')
-        # Create an sRGB profile
         srgb_profile = ImageCms.createProfile("sRGB")
-
-        # Save the image with the sRGB profile, overwriting the original
         image.save(image_path, 'JPEG', icc_profile=ImageCms.ImageCmsProfile(srgb_profile).tobytes())
 
     def load_and_preprocess_images(self, data_path):
@@ -63,10 +41,8 @@ class PlantClassifier:
         target_array = []
         for index, category in enumerate(self.categories):
             folder_path = os.path.join(data_path, category)
-            # self.convolution_images(folder_path, category)
             for filename in os.listdir(folder_path):
                 image_path = os.path.join(folder_path, filename)
-                # self.correct_image_srgb(image_path)
                 img = cv2.imread(image_path)
                 if img is not None:
                     resized_img = cv2.resize(img, (self.img_width, self.img_height))
@@ -78,9 +54,9 @@ class PlantClassifier:
         return X, y
 
     def _build_model(self):
+        # Define CNN model architecture
         model = Sequential()
-        model.add(
-            Conv2D(filters=16, kernel_size=(3, 3), activation="relu", input_shape=(self.img_width, self.img_height, 3)))
+        model.add(Conv2D(filters=16, kernel_size=(3, 3), activation="relu", input_shape=(self.img_width, self.img_height, 3)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu'))
@@ -92,6 +68,9 @@ class PlantClassifier:
         model.add(Dense(len(self.categories), activation='sigmoid'))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         return model
+
+    def create_keras_model(self):
+        return self._build_model()
 
     def create_keras_model(self):
         return self._build_model()
@@ -124,29 +103,23 @@ class PlantClassifier:
         return model, history
 
     def predict(self, model, X_test, y_test):
+        # Make predictions and evaluate model performance
         y_pred = model.predict(X_test)
-        # Calculate the accuracy and precision of the model based on the predicted and actual data
         y_test_labels = np.argmax(y_test, axis=1)
         y_pred_labels = np.argmax(y_pred, axis=1)
-
-        # Calculate the accuracy and precision of the model based on the predicted and actual data
         accuracy = accuracy_score(y_test_labels, y_pred_labels)
         precision = precision_score(y_test_labels, y_pred_labels, average='weighted')
-        f1 = f1_score(y_test_labels,y_pred_labels, average='weighted')
-        # Generate confusion matrix display
+        f1 = f1_score(y_test_labels, y_pred_labels, average='weighted')
         ConfusionMatrixDisplay.from_predictions(y_test_labels, y_pred_labels, display_labels=self.categories)
         plt.show()
-
-        # Return the accuracy and precision
         return accuracy, precision, f1
 
-
     def test(self, model, test_img_path):
+        # Test the model on a single image
         test_img = image.load_img(test_img_path, target_size=(self.img_width, self.img_height, 3))
         test_img_array = image.img_to_array(test_img)
         test_img_array /= 255.0
         test_img_array = np.expand_dims(test_img_array, axis=0)
-
         predictions = model.predict(test_img_array)
         top_classes = np.argsort(predictions[0])[::-1][:4]
         print(f"The predicted image is {self.categories[top_classes[0]]}")
@@ -155,9 +128,18 @@ class PlantClassifier:
         img = plt.imread(test_img_path)
         plt.imshow(img)
         plt.axis('off')
-        # plt.show()
         category = self.categories[top_classes[0]]
         return category
+
+    def load_model(self, filepath, new_input_shape):
+        # Load a pre-trained model
+        loaded_model = tf_keras.models.load_model(filepath)
+        my_input_tensor = Input(shape=new_input_shape)
+        loaded_model.layers.pop(0)
+        new_outputs = loaded_model(my_input_tensor)
+        new_model = tf_keras.Model(inputs=my_input_tensor, outputs=new_outputs)
+        print('Loaded model successfully')
+        return new_model
 
     def plot_history(self, history):
         acc = history.history_["accuracy"]
@@ -179,34 +161,26 @@ class PlantClassifier:
         plt.title("Loss")
         plt.show()
 
-    def load_model(self, filepath, new_input_shape):
-        loaded_model = tf_keras.models.load_model(filepath)
-        my_input_tensor = Input(shape=new_input_shape)
-        loaded_model.layers.pop(0)
-        new_outputs = loaded_model(my_input_tensor)
-        new_model = tf_keras.Model(inputs=my_input_tensor, outputs=new_outputs)
-        print('Loaded model successfully')
-        return new_model
-
     def main(self):
+        # Train and evaluate the model
         # X, y = self.load_and_preprocess_images('C:/Users/EmmaS/Documents/M7-Python/Final Project/data')
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-        # model, history = self.grid_search(X_train, y_train, False)  # Make sure train_model returns the model
-        # print("Model trained successfully:", model)
+        # model, history = self.grid_search(X_train, y_train, False)
         # model.model.save("model.keras", model)
-
         loaded_model = load_model('model.keras', compile=True)
-        print(loaded_model.dtype)
-        # self.plot_history(history)
         # self.predict(loaded_model, X_test, y_test)
-        self.test(loaded_model,self.image_path )  # image_path
+        # self.plot_history(history)
+        self.test(loaded_model, self.image_path)
 
     def main_for_category_prediction(self, filepath):
+        # Predict category of a single image
         loaded_model = load_model('model.keras', compile=True)
         category = self.test(loaded_model, filepath)
         return category
 
 
+# Create an instance of PlantClassifier and execute the main function
 
-#plant = PlantClassifier(['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents'])
-# plant.main()
+
+    # plant = PlantClassifier(['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents'], 'data/for_recognition/pancake.jpeg')
+    # plant.main()
