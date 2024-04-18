@@ -42,7 +42,7 @@ class Plant_recgonizer:
 
     def correct_image_srgb(self, imagepath):
         # Load the image
-        image_path= 'data/for_recognition/test.jpeg'
+        image_path= 'data/Chinese_money_plant/test.jpeg'
         image = Image.open(image_path)
 
         # Ensure the image is in RGB mode

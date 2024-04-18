@@ -6,27 +6,66 @@ from scikeras.wrappers import KerasClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import precision_score
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import *
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Input
-from tensorflow.keras.preprocessing import image
+from tensorflow.keras.preprocessing import *
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 from keras.models import Model
+from keras.models import load_model
+from PIL import Image, ImageCms
 
 
 class PlantClassifier:
-    def __init__(self, categories , img_width=150, img_height=150):
+    def __init__(self, categories , img_width=150, img_height=150 ):
         self.categories = categories
         self.img_width = img_width
         self.img_height = img_height
+        self.image_path = 'data/for_recognition/test.jpeg'
+    def convolution_images(self, folder_path, category):
+        # Setting up kernel to be used for convolution of images
+        sobel_kernel = np.array([[-1, 0, 1],
+                                 [-1, 0, 2],
+                                 [-1, 0, 1]])
+
+        # Creating list for the processed images
+        list = []
+        for filename in os.listdir(folder_path):
+            # Use sobel-kernel on the images
+            img_sobel = cv2.filter2D(cv2.imread(os.path.join(folder_path, filename)), -1, sobel_kernel)
+            # Add the convoluted images to the list
+            list.append(img_sobel)
+
+        # Add the images to their corresponding data files based on their type (dog or muffin)
+        for i in range(len(list)):
+            cv2.imwrite(f"data/{category}/convolution{i}.jpg", list[i])
+
+        # Clear the list when done so that the process can start again with clean list
+        list.clear()
+    def correct_image_srgb(self, imagepath):
+        # Load the image
+        image_path= 'data/Chinese_money_plant/test.jpeg'
+        image = Image.open(image_path)
+
+        # Ensure the image is in RGB mode
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        # Create an sRGB profile
+        srgb_profile = ImageCms.createProfile("sRGB")
+
+        # Save the image with the sRGB profile, overwriting the original
+        image.save(image_path, 'JPEG', icc_profile=ImageCms.ImageCmsProfile(srgb_profile).tobytes())
 
     def load_and_preprocess_images(self, data_path):
         processed_images = []
         target_array = []
         for index, category in enumerate(self.categories):
             folder_path = os.path.join(data_path, category)
+            # self.convolution_images(folder_path, category)
             for filename in os.listdir(folder_path):
-                img = cv2.imread(os.path.join(folder_path, filename))
+                image_path = os.path.join(folder_path, filename)
+                # self.correct_image_srgb(image_path)
+                img = cv2.imread(image_path)
                 if img is not None:
                     resized_img = cv2.resize(img, (self.img_width, self.img_height))
                     processed_images.append(resized_img)
@@ -54,31 +93,33 @@ class PlantClassifier:
     def create_keras_model(self):
         return self._build_model()
 
-
-
-    def grid_search(self, X_train, y_train):
-        model = KerasClassifier(model=self.create_keras_model(), verbose=0)
+    def grid_search(self, X_train, y_train, gridsearch):
+        cnn_model = KerasClassifier(model=self.create_keras_model(), verbose=0)
         # Define the grid search parameters
-        param_grid = {
-            'epochs': [20, 30, 40],
-            'batch_size': [32, 64, 128],
-            'validation_split': [0.1, 0.2, 0.3]
-        }
+        if gridsearch:
+            param_grid = {
+                'epochs': [20, 30, 40],
+                'batch_size': [32, 64, 128],
+                'validation_split': [0.1, 0.2, 0.3]
+            }
 
 
         # Create Grid Search
-        grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, verbose=10)
+            model = GridSearchCV(estimator=cnn_model, param_grid=param_grid, cv=3, verbose=10)
+            grid_result = model.fit(X_train, y_train)
+            history = grid_result.best_estimator_.model.history_
+            print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+            means = model.cv_results_['mean_test_score']
+            stds = model.cv_results_['std_test_score']
+            params = model.cv_results_['params']
+            for mean, stdev, param in zip(means, stds, params):
+                print("%f (%f) with: %r" % (mean, stdev, param))
 
-        # Fit the model
-        grid_result = grid.fit(X_train, y_train)
-
-        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-        means = grid_result.cv_results_['mean_test_score']
-        stds = grid_result.cv_results_['std_test_score']
-        params = grid_result.cv_results_['params']
-        for mean, stdev, param in zip(means, stds, params):
-            print("%f (%f) with: %r" % (mean, stdev, param))
-        return grid
+        else:
+            model = KerasClassifier(model=self.create_keras_model(), batch_size=32, epochs=30 ,validation_split=0.1)
+            history = model.fit(X_train,y_train)
+        print(history)
+        return model, history
     def predict(self, model, X_test, y_test):
         y_pred = model.predict(X_test)
         # Calculate the accuracy and precision of the model based on the predicted and actual data
@@ -111,9 +152,27 @@ class PlantClassifier:
         plt.axis('off')
         plt.show()
 
+    def plot_history(self, history):
+        acc = history.history_["accuracy"]
+        loss = history.history_["loss"]
+        val_loss = history.history_["val_loss"]
+        val_accuracy = history.history_["val_accuracy"]
 
-    def save_model(self, filepath, model):
-        model.save(filepath)  # Corrected method name
+        x = range(1, len(acc) + 1)
+
+        plt.figure(figsize=(12, 5))
+        plt.subplot(1, 2, 1)
+        plt.plot(x, acc, "b", label="traning_acc")
+        plt.plot(x, val_accuracy, "r", label="traning_acc")
+        plt.title("Accuracy")
+
+        plt.subplot(1, 2, 2)
+        plt.plot(x, loss, "b", label="traning_acc")
+        plt.plot(x, val_loss, "r", label="traning_acc")
+        plt.title("Loss")
+        plt.show()
+
+
 
     def load_model(self, filepath, new_input_shape):
         loaded_model = tf_keras.models.load_model(filepath)
@@ -126,13 +185,16 @@ class PlantClassifier:
     def main(self):
         X, y = self.load_and_preprocess_images('C:/Users/EmmaS/Documents/M7-Python/Final Project/data')
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-        model = self.grid_search(X_train, y_train)  # Make sure train_model returns the model
+        model, history = self.grid_search(X_train, y_train, False)  # Make sure train_model returns the model
         print("Model trained successfully:", model)
-        # self.save_model('model.h5', model)
-        # self.load_model('model.h5', (150, 150, 3))
-        self.test(model, 'data/for_recognition/test.jpeg')
-        self.predict(model, X_test, y_test,)
+        model.model.save("model.keras", model)
 
+
+        loaded_model = load_model('model.keras',compile=True )
+        print(loaded_model.dtype)
+        self.plot_history(history)
+        self.predict(loaded_model, X_test, y_test,)
+        # # self.test(loaded_model,self.image_path )  # image_path
 
 if __name__ == '__main__':
     plant = PlantClassifier(['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents'])

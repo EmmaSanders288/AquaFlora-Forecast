@@ -13,7 +13,7 @@ def main():
     elif user == 'Anna':
         url = 'C:/Users/anna/PycharmProjects/AquaFlora-Forecast'
 
-    filepath = url + '/data/for_recognition/test.jpeg'
+    filepath = url + '/data/for_recognition/dfxhgcjvk.jpeg'
     sensor_data_path = url + '/csv_files/PlantDataLabels.csv'
 
     com_port = "COM16"
