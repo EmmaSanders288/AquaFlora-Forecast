@@ -10,8 +10,8 @@ class Screen:
         self.clock = pygame.time.Clock()
         self.running = True
         self.folderpath = filepath
-        self.small_font_size = 60
-        self.big_font_size = 56
+        self.small_font_size = 56
+        self.big_font_size = 54
 
     def update_input(self, category, light, temperature, humidity, soil_humidity, days):
 
@@ -27,11 +27,11 @@ class Screen:
     def load_resources(self):
         self.img = pygame.image.load(self.folderpath)
         self.scaled_image = pygame.transform.scale(self.img,
-                                                   (self.screen.get_width() // 3, self.screen.get_height() // 1.5))
+                                                   (self.screen.get_width() // 3.5, self.screen.get_height() // 2))
         self.rect_image = self.scaled_image.get_rect(
             center=(self.screen.get_width() // 4, self.screen.get_height() // 2))
 
-        self.rect = Rect(500, 0, self.screen.get_width() // 3 + 50, self.screen.get_height() // 1.5 + 50)
+        self.rect = Rect(500, 0, self.screen.get_width() // 3.5 + 50, self.screen.get_height() // 2 + 50)
         self.rect.center = (self.screen.get_width() // 4, self.screen.get_height() // 2)
 
         self.big_font = pygame.font.Font('Sunny Spells Basic.ttf', self.big_font_size)

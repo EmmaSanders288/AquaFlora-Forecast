@@ -39,7 +39,6 @@ class PlantWaterNeedPredictor:
         X = self.sensor_data.drop(columns=['Unnamed: 0', 'Waterneed', 'Time'])
         y = self.sensor_data['Waterneed']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
         ''''
         parameters = {'kernel': ('rbf', 'sigmoid'), 'C': [0.1, 1, 10], 'gamma': ('auto', 'scale')}
         svr = SVR()
@@ -49,7 +48,6 @@ class PlantWaterNeedPredictor:
         print(clf.best_score_)
         print(clf.best_score_)
         '''
-
         clf = make_pipeline(StandardScaler(), SVR(kernel='rbf', C=10, gamma='auto'))
         clf.fit(X_train, y_train)
 
@@ -108,11 +106,11 @@ class PlantWaterNeedPredictor:
 
 
 if __name__ == '__main__':
-    sensor_data_path = "C:/Users/EmmaS/Documents/M7-Python/Final Project/csv_files/PlantDataLabels.csv"
-    com_port = "COM7"
+    sensor_data_path = "C:/Users/anna/PycharmProjects/AquaFlora-Forecast/csv_files/PlantDataLabels.csv"
+    com_port = "COM16"
     baud_rate = 9600
 
     predictor = PlantWaterNeedPredictor(sensor_data_path, com_port, baud_rate)
     predictor.preprocess_data()
-    # model = predictor.train_model()
+    model = predictor.train_model()
     # predictor.save_model(model)

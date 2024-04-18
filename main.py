@@ -1,4 +1,4 @@
-from Plant_Recognizer import Plant_recgonizer
+from tets import PlantClassifier
 from screen import Screen
 from SVM_model import PlantWaterNeedPredictor
 import math
@@ -7,19 +7,19 @@ import math
 # from saveDataToExcel import SensorDataLogger
 
 def main():
-    user = 'Emma'
+    user = 'Anna'
     if user == 'Emma':
         url = 'C:/Users/EmmaS/Documents/M7-Python/Final Project'
     elif user == 'Anna':
         url = 'C:/Users/anna/PycharmProjects/AquaFlora-Forecast'
 
-    filepath = url + '/data/for_recognition/dfxhgcjvk.jpeg'
+    filepath = url + '/data/for_recognition/test.jpeg'
     sensor_data_path = url + '/csv_files/PlantDataLabels.csv'
 
     com_port = "COM16"
     baud_rate = 9600
 
-    plant_recognizer = Plant_recgonizer()
+    plant_recognizer = PlantClassifier(['Chinese_money_plant', 'Sansieveria', 'Cactus', 'Succulents'], filepath)
     plant_need_predictor = PlantWaterNeedPredictor(sensor_data_path, com_port, baud_rate)
     screen = Screen(filepath)
 
