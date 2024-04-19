@@ -41,8 +41,10 @@ class PlantClassifier:
         target_array = []
         for index, category in enumerate(self.categories):
             folder_path = os.path.join(data_path, category)
+            # self.convolution_images(folder_path, category)
             for filename in os.listdir(folder_path):
                 image_path = os.path.join(folder_path, filename)
+                # self.correct_image_srgb(image_path)
                 img = cv2.imread(image_path)
                 if img is not None:
                     resized_img = cv2.resize(img, (self.img_width, self.img_height))
