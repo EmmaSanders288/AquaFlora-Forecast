@@ -72,8 +72,6 @@ class PlantClassifier:
     def create_keras_model(self):
         return self._build_model()
 
-    def create_keras_model(self):
-        return self._build_model()
 
     def grid_search(self, X_train, y_train, gridsearch):
         cnn_model = KerasClassifier(model=self.create_keras_model(), verbose=0)
@@ -99,7 +97,6 @@ class PlantClassifier:
         else:
             model = KerasClassifier(model=self.create_keras_model(), batch_size=32, epochs=30, validation_split=0.1)
             history = model.fit(X_train, y_train)
-        print(history)
         return model, history
 
     def predict(self, model, X_test, y_test):

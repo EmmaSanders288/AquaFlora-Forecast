@@ -44,6 +44,16 @@ class PlantWaterNeedPredictor:
         y = self.sensor_data['Waterneed']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+        ''''
+        parameters = {'kernel': ('rbf', 'sigmoid'), 'C': [0.1, 1, 10], 'gamma': ('auto', 'scale')}
+        svr = SVR()
+        clf = GridSearchCV(svr, parameters, scoring='neg_mean_squared_error', verbose=14)
+        clf.fit(X_train, y_train)
+        print(clf.best_estimator_)
+        print(clf.best_score_)
+        print(clf.best_score_)
+        '''
+
         clf = make_pipeline(StandardScaler(), SVR(kernel='rbf', C=10, gamma='auto'))
         clf.fit(X_train, y_train)
 
